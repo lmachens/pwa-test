@@ -1,4 +1,5 @@
 import Head from "next/head";
+import { useState } from "react";
 import styles from "../styles/Home.module.css";
 
 function urlBase64ToUint8Array(base64String) {
@@ -15,11 +16,14 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 export default function Home() {
+  const [subscribed, setSubscribed] = useState(false);
+
   async function handleSubscribeClick() {
     const status = await Notification.requestPermission();
     if (status !== "granted") {
       return;
     }
+    setSubscribed(true);
 
     const { publicKey } = await fetch("/api/vapid").then((response) =>
       response.json()
@@ -27,12 +31,15 @@ export default function Home() {
     const convertedPublicKey = urlBase64ToUint8Array(publicKey);
 
     const registration = await navigator.serviceWorker.ready;
-    const subscription = registration.pushManager.subscribe({
+    const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: convertedPublicKey,
     });
+
+    // POST subscription.endpoint to server
     console.log({ subscription });
   }
+
   return (
     <div className={styles.container}>
       <Head>
@@ -40,7 +47,9 @@ export default function Home() {
       </Head>
 
       <main className={styles.main}>
-        <button onClick={handleSubscribeClick}>Subscribe</button>
+        <button disabled={subscribed} onClick={handleSubscribeClick}>
+          Subscribe
+        </button>
       </main>
     </div>
   );
