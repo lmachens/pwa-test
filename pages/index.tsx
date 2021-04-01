@@ -35,9 +35,19 @@ export default function Home() {
       userVisibleOnly: true,
       applicationServerKey: convertedPublicKey,
     });
+    const { keys } = subscription.toJSON();
 
+    await fetch("/api/subscriptions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        endpoint: subscription.endpoint,
+        keys,
+      }),
+    });
     // POST subscription.endpoint to server
-    console.log({ subscription });
   }
 
   return (
